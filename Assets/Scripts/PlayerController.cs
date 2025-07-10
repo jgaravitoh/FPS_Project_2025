@@ -1,5 +1,6 @@
 using UnityEngine;
 using System;
+using static UnityEngine.Android.AndroidGame;
 
 public class PlayerController : MonoBehaviour
 {
@@ -28,10 +29,12 @@ public class PlayerController : MonoBehaviour
 
     [Header("----------- Shooting Mechanic Variables -----------")]
     [SerializeField] private GameObject bulletImpact;
-    public float timeBetweenShots = 0.1f;
+    //public float timeBetweenShots = 0.1f;
     private float shotCounter;
+    public float muzzleDisplayTime;
+    private float muzzleCounter;
 
-    public float maxHeat = 10f, heatPerShot = 1f, coolRate = 4f, overheatCoolRate = 5f;
+    public float maxHeat = 10f, /*heatPerShot = 1f ,*/ coolRate = 4f, overheatCoolRate = 5f;
     private float heatCounter;
     private bool overHeated;
 
@@ -48,6 +51,9 @@ public class PlayerController : MonoBehaviour
         UIController.instance.weaponTempSlider.maxValue = maxHeat;
 
         SwitchGun();
+
+        Transform newTransform = SpawnManager.instance.GetSpawnPoint();
+        transform.position = newTransform.position; transform.rotation = newTransform.rotation;
     }
 
     // Update is called once per frame
@@ -85,20 +91,24 @@ public class PlayerController : MonoBehaviour
         #endregion
 
         #region Shooting stuff
-        if (!overHeated)
+
+        if (allGuns[selectedGun].muzzleFlash.activeInHierarchy) {  muzzleCounter -= Time.deltaTime; } //MUZZLE FLASH THINGY
+        if (muzzleCounter <= 0) { allGuns[selectedGun].muzzleFlash.SetActive(false); }
+
+        if (!overHeated) // SHOOTING WHEN GUN IS NOT OVERHEATED
         {
             if (Input.GetMouseButtonDown(0))
             {
                 Shoot();
             }
-            if (Input.GetMouseButton(0))
+            if (Input.GetMouseButton(0) && allGuns[selectedGun].isAutomatic)
             {
                 shotCounter -= Time.deltaTime;
                 if (shotCounter <= 0) { Shoot(); }
             }
             heatCounter -= coolRate * Time.deltaTime;
         }
-        else
+        else // GUN COOLDOWN WHEN OVERHEATED
         {
             heatCounter -= overheatCoolRate * Time.deltaTime;
 
@@ -113,7 +123,13 @@ public class PlayerController : MonoBehaviour
         // MOSUE SCROLLING THE AVAILABLE GUNS
         if (Input.GetAxisRaw("Mouse ScrollWheel") > 0) { selectedGun++; selectedGun = (int)nfmod((float)selectedGun, (float)allGuns.Length); SwitchGun(); }
         if (Input.GetAxisRaw("Mouse ScrollWheel") < 0) { selectedGun--; selectedGun = (int)nfmod((float)selectedGun, (float)allGuns.Length); SwitchGun(); }
-
+        for (int i = 0; i < allGuns.Length; i++) // Keyboard switching
+        {
+            if (Input.GetKeyDown((i+1).ToString()))
+            {
+                selectedGun = i; SwitchGun();
+            }
+        }
 
         #endregion
 
@@ -154,9 +170,9 @@ public class PlayerController : MonoBehaviour
             GameObject bulletImpactObject = Instantiate(bulletImpact, hit.point + (hit.normal * 0.002f), Quaternion.LookRotation(hit.normal, Vector3.up));
             Destroy(bulletImpactObject, 10f);
         }
-        shotCounter = timeBetweenShots;
+        shotCounter = allGuns[selectedGun].timeBetweenShots;
 
-        heatCounter += heatPerShot;
+        heatCounter += allGuns[selectedGun].heatPerShot;
         if (heatCounter >= maxHeat)
         {
             heatCounter = maxHeat;
@@ -164,6 +180,8 @@ public class PlayerController : MonoBehaviour
 
             UIController.instance.overheatedMessage.gameObject.SetActive(true);
         }
+        allGuns[selectedGun].muzzleFlash.SetActive(true);
+        muzzleCounter = muzzleDisplayTime;
     }
     private void SwitchGun()
     {
@@ -172,6 +190,7 @@ public class PlayerController : MonoBehaviour
             gun.gameObject.SetActive(false);
         }
         allGuns[selectedGun].gameObject.SetActive(true);
+        allGuns[selectedGun].muzzleFlash.SetActive(false);
     }
 
     float nfmod(float a, float b) { return a - b * (float)Math.Floor(a / b); }
