@@ -44,9 +44,14 @@ public class PlayerController : MonoBehaviourPunCallbacks
 
     public GameObject playerHitImpact;
 
-    [Header("----------- maxHealth Variables -----------")]
+    [Header("----------- Health Variables -----------")]
     public int maxHealth = 100;
     private int currentHealth;
+
+    [Header("----------- Visuals/Animators Variables -----------")]
+    public Animator animator;
+    public GameObject playerModel;
+    public Transform modelGunPoint, gunHolder;
 
 
     // Start is called once before the first execution of Update after the MonoBehaviour is created
@@ -57,13 +62,27 @@ public class PlayerController : MonoBehaviourPunCallbacks
 
         UIController.instance.weaponTempSlider.maxValue = maxHeat;
 
-        SwitchGun();
+        //SwitchGun();
+        photonView.RPC(nameof(SetGun), RpcTarget.All, selectedGun);
+
         currentHealth = maxHealth;
-        UIController.instance.healthSlider.maxValue = maxHealth;
-        UIController.instance.healthSlider.value = currentHealth;
+
 
         //Transform newTransform = SpawnManager.instance.GetSpawnPoint();
         //transform.position = newTransform.position; transform.rotation = newTransform.rotation;
+        if (photonView.IsMine){
+            playerModel.SetActive(false);
+
+            UIController.instance.healthSlider.maxValue = maxHealth;
+            UIController.instance.healthSlider.value = currentHealth;
+        }
+        else
+        {
+            gunHolder.parent = modelGunPoint;
+            gunHolder.localPosition = Vector3.zero;
+            gunHolder.localRotation = Quaternion.identity;
+
+        }
     }
 
     // Update is called once per frame
@@ -137,16 +156,26 @@ public class PlayerController : MonoBehaviourPunCallbacks
             UIController.instance.weaponTempSlider.value = heatCounter;
 
             // MOSUE SCROLLING THE AVAILABLE GUNS
-            if (Input.GetAxisRaw("Mouse ScrollWheel") > 0) { selectedGun++; selectedGun = (int)nfmod((float)selectedGun, (float)allGuns.Length); SwitchGun(); }
-            if (Input.GetAxisRaw("Mouse ScrollWheel") < 0) { selectedGun--; selectedGun = (int)nfmod((float)selectedGun, (float)allGuns.Length); SwitchGun(); }
+            if (Input.GetAxisRaw("Mouse ScrollWheel") > 0) { selectedGun++; selectedGun = (int)nfmod((float)selectedGun, (float)allGuns.Length);
+                                                                                          photonView.RPC(nameof(SetGun), RpcTarget.All, selectedGun);
+            }
+            if (Input.GetAxisRaw("Mouse ScrollWheel") < 0) { selectedGun--; selectedGun = (int)nfmod((float)selectedGun, (float)allGuns.Length);
+                                                                                          photonView.RPC(nameof(SetGun), RpcTarget.All, selectedGun);
+            }
             for (int i = 0; i < allGuns.Length; i++) // Keyboard switching
             {
                 if (Input.GetKeyDown((i + 1).ToString()))
                 {
-                    selectedGun = i; SwitchGun();
+                    selectedGun = i; //SwitchGun();
+                    photonView.RPC(nameof(SetGun), RpcTarget.All, selectedGun);
                 }
             }
 
+            #endregion
+
+            #region Animator stuff
+            animator.SetBool("grounded", isGrounded);
+            animator.SetFloat("speed", moveDir.magnitude);
             #endregion
 
             #region Handle mouse state for the game
@@ -247,6 +276,15 @@ public class PlayerController : MonoBehaviourPunCallbacks
         }
         allGuns[selectedGun].gameObject.SetActive(true);
         allGuns[selectedGun].muzzleFlash.SetActive(false);
+    }
+    [PunRPC]
+    public void SetGun(int gunToSwitchTo)
+    {
+        if (gunToSwitchTo < allGuns.Length)
+        {
+            selectedGun = gunToSwitchTo;
+            SwitchGun();
+        }
     }
 
     float nfmod(float a, float b) { return a - b * (float)Math.Floor(a / b); }
