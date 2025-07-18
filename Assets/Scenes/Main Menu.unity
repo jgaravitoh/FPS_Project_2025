@@ -4728,6 +4728,10 @@ MonoBehaviour:
   levelToPlay: Map 1
   startButton: {fileID: 1921327621}
   roomTestButton: {fileID: 1281568612}
+  allMaps:
+  - Map 1
+  - Map 2
+  changeMapBetweenRounds: 1
 --- !u!1001 &1709100852
 PrefabInstance:
   m_ObjectHideFlags: 0

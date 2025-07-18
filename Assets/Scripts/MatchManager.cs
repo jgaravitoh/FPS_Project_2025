@@ -64,7 +64,7 @@ public class MatchManager : MonoBehaviourPunCallbacks, IOnEventCallback
 
             if (!PhotonNetwork.IsMasterClient)
             {
-                //UIController.instance.timerText.gameObject.SetActive(false);
+                UIController.instance.timerText.gameObject.SetActive(false);
             }
         }
     }
@@ -420,7 +420,7 @@ public class MatchManager : MonoBehaviourPunCallbacks, IOnEventCallback
             PhotonNetwork.DestroyAll();
         }
 
-        //UIController.instance.endScreen.SetActive(true);
+        UIController.instance.endScreen.SetActive(true);
         ShowLeaderboard();
 
         Cursor.lockState = CursorLockMode.None;
@@ -445,7 +445,7 @@ public class MatchManager : MonoBehaviourPunCallbacks, IOnEventCallback
         {
             if (PhotonNetwork.IsMasterClient)
             {
-                /*
+                
                 if (!Launcher.instance.changeMapBetweenRounds)
                 {
                     NextMatchSend();
@@ -464,7 +464,7 @@ public class MatchManager : MonoBehaviourPunCallbacks, IOnEventCallback
                         PhotonNetwork.LoadLevel(Launcher.instance.allMaps[newLevel]);
                     }
                 }
-                */
+                
             }
         }
     }
@@ -483,8 +483,8 @@ public class MatchManager : MonoBehaviourPunCallbacks, IOnEventCallback
     {
         state = GameState.Playing;
 
-        //UIController.instance.endScreen.SetActive(false);
-        //UIController.instance.leaderboard.SetActive(false);
+        UIController.instance.endScreen.SetActive(false);
+        UIController.instance.leaderboard.SetActive(false);
 
         foreach (PlayerInfo player in allPlayers)
         {
@@ -493,8 +493,7 @@ public class MatchManager : MonoBehaviourPunCallbacks, IOnEventCallback
         }
 
         UpdateStatsDisplay();
-
-        //PlayerSpawner.instance.SpawnPlayer();
+        StartCoroutine(PlayerSpawner.Instance.startSpawnPlayer());
 
         SetupTimer();
     }
@@ -513,7 +512,7 @@ public class MatchManager : MonoBehaviourPunCallbacks, IOnEventCallback
 
         var timeToDisplay = System.TimeSpan.FromSeconds(currentMatchTime);
 
-        //UIController.instance.timerText.text = timeToDisplay.Minutes.ToString("00") + ":" + timeToDisplay.Seconds.ToString("00");
+        UIController.instance.timerText.text = timeToDisplay.Minutes.ToString("00") + ":" + timeToDisplay.Seconds.ToString("00");
     }
 
     public void TimerSend()
@@ -535,7 +534,7 @@ public class MatchManager : MonoBehaviourPunCallbacks, IOnEventCallback
 
         UpdateTimerDisplay();
 
-        //UIController.instance.timerText.gameObject.SetActive(true);
+        UIController.instance.timerText.gameObject.SetActive(true);
     }
 }
 
