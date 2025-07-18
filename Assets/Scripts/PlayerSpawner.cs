@@ -19,13 +19,22 @@ public class PlayerSpawner : MonoBehaviour
     {
         if (PhotonNetwork.IsConnected) 
         {
-            SpawnPlayer();
+            StartCoroutine(startSpawnPlayer());
         }
     }
-    public void SpawnPlayer()
+    public IEnumerator startSpawnPlayer()
     {
+        Debug.Log("=== PhotonNetwork.InRoom:" + PhotonNetwork.InRoom);
+
+        while (!PhotonNetwork.InRoom)
+        {
+            yield return null;
+        }
+        Debug.Log("=== spawn player");
         Transform spawnPoint = SpawnManager.instance.GetSpawnPoint();
+
         player = PhotonNetwork.Instantiate(playerPrefab.name, spawnPoint.position, spawnPoint.rotation);
+
     }
     public void Die(string damager)
     {
@@ -34,6 +43,7 @@ public class PlayerSpawner : MonoBehaviour
 
         //PhotonNetwork.Destroy(player);
         //Invoke(nameof(SpawnPlayer), 3);
+        MatchManager.instance.UpdateStatsSend(PhotonNetwork.LocalPlayer.ActorNumber, 1, 1);
 
         if (player != null)
         {
@@ -53,6 +63,6 @@ public class PlayerSpawner : MonoBehaviour
 
         UIController.instance.deathScreen.SetActive(false);
 
-        SpawnPlayer();
+        StartCoroutine(startSpawnPlayer());
     }
 }
