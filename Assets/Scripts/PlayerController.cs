@@ -54,6 +54,10 @@ public class PlayerController : MonoBehaviourPunCallbacks
     public Transform modelGunPoint, gunHolder;
 
 
+    [Header("----------- Audio Variables -----------")]
+    public AudioSource footstepSlow;
+    public AudioSource footstepFast;
+
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
     {
@@ -105,8 +109,28 @@ public class PlayerController : MonoBehaviourPunCallbacks
             #region Movement stuff
             moveDir = new Vector3(Input.GetAxisRaw("Horizontal"), 0f, Input.GetAxisRaw("Vertical"));
 
-            if (Input.GetKey(KeyCode.LeftShift)) { activeMoveSpeed = runSpeed; }
-            else { activeMoveSpeed = walkSpeed; }
+            if (Input.GetKey(KeyCode.LeftShift))
+            {
+                activeMoveSpeed = runSpeed;
+                if (!footstepFast.isPlaying && moveDir != Vector3.zero)
+                {
+                    footstepFast.Play();
+                    footstepSlow.Stop();
+                }
+            }
+            else
+            {
+                activeMoveSpeed = walkSpeed;
+                if (!footstepSlow.isPlaying && moveDir != Vector3.zero)
+                {
+                    footstepFast.Stop();
+                    footstepSlow.Play();
+                }
+            }
+            if (moveDir == Vector3.zero || !isGrounded) 
+            {
+                footstepFast.Stop(); footstepSlow.Stop();
+            }
 
             float yVel = movement.y;
             movement = ((transform.forward * moveDir.z) + (transform.right * moveDir.x)).normalized * activeMoveSpeed;
@@ -180,7 +204,9 @@ public class PlayerController : MonoBehaviourPunCallbacks
 
             #region Handle mouse state for the game
             if (Input.GetKeyDown(KeyCode.Escape)) { Cursor.lockState = CursorLockMode.None; }
-            else if (Cursor.lockState == CursorLockMode.None) { if (Input.GetMouseButtonDown(0)) { Cursor.lockState = CursorLockMode.Locked; } }
+            else if (Cursor.lockState == CursorLockMode.None) { 
+                if (Input.GetMouseButtonDown(0) && !UIController.instance.optionsScreen.activeInHierarchy) { Cursor.lockState = CursorLockMode.Locked; } 
+                }
             #endregion
         }
     }
@@ -251,6 +277,9 @@ public class PlayerController : MonoBehaviourPunCallbacks
         }
         allGuns[selectedGun].muzzleFlash.SetActive(true);
         muzzleCounter = muzzleDisplayTime;
+
+        allGuns[selectedGun].shotSound.Stop();
+        allGuns[selectedGun].shotSound.Play();
     }
     [PunRPC]
     public void DealDamage(string damager, int damageAmount, int actor)

@@ -36,14 +36,14 @@ public class MatchManager : MonoBehaviourPunCallbacks, IOnEventCallback
         Ending
     }
 
-    public int killsToWin = 3;
+    public int killsToWin = 10;
     public Transform mapCamPoint;
     public GameState state = GameState.Waiting;
     public float waitAfterEnding = 5f;
 
     public bool perpetual;
 
-    public float matchLength = 180f;
+    public float matchLength = 200f;
     private float currentMatchTime;
     private float sendTimer;
 

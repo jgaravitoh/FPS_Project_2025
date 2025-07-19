@@ -42,14 +42,21 @@ public class Launcher : MonoBehaviourPunCallbacks
 
     public string[] allMaps;
     public bool changeMapBetweenRounds = true;
+
+
+    public GameObject creditsAssetsScreen;
+    public GameObject controlsScreen;
     void Start()
     {
         CloseMenus();
 
         loadingScreen.SetActive(true);
         loadingText.text = "Connecting to Network...";
-
-        PhotonNetwork.ConnectUsingSettings();
+        if (!PhotonNetwork.IsConnected) 
+        {
+            PhotonNetwork.ConnectUsingSettings();
+        }
+        
 
 #if UNITY_EDITOR
                 roomTestButton.SetActive(true);
@@ -258,6 +265,29 @@ public class Launcher : MonoBehaviourPunCallbacks
     {
         //PhotonNetwork.LoadLevel(levelToPlay);
         PhotonNetwork.LoadLevel(allMaps[Random.Range(0, allMaps.Length)]);
+    }
+
+    public void ShowHideCredits()
+    {
+        if (!creditsAssetsScreen.activeInHierarchy)
+        {
+            creditsAssetsScreen.SetActive(true);
+        }
+        else
+        {
+            creditsAssetsScreen.SetActive(false);
+        }
+    }
+    public void ShowHideControls()
+    {
+        if (!controlsScreen.activeInHierarchy)
+        {
+            controlsScreen.SetActive(true);
+        }
+        else
+        {
+            controlsScreen.SetActive(false);
+        }
     }
     public void QuitGame()
     {
